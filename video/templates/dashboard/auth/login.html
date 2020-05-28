@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        .edit-area {
+            width: 35%;
+            margin: 8% auto;
+            border: 1px solid #CCCCCC;
+            border-radius: 30px;
+            padding: 5%;
+        }
+    </style>
+</head>
+<body>
+<form class="edit-area" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">用户名</label>
+        <input type="text" class="form-control" name="username" id="username" placeholder="username">
+    </div>
+    <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" class="form-control" name="password" id="password" placeholder="password">
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox"> 记住用户名
+        </label>
+    </div>
+    <button type="submit" class="btn btn-default">登录</button>
+    {{ error }}
+</form>
+</body>
+</html>

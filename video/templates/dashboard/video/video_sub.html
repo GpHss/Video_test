@@ -1,0 +1,95 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load extras %}
+{% block file %}
+    <link rel="stylesheet" href="{% static 'dashboard/video_sub.css' %}">
+{% endblock file %}
+
+{% block title %}
+    外链视频
+{% endblock title %}
+
+{% block style %}
+    <style>
+        h1 {
+            margin: 5%;
+        }
+    </style>
+{% endblock style %}
+
+
+{% block content %}
+    <h1>{{ video.name }}</h1>
+
+    <form class="edit-area add-area" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="url">地址: </label>
+            <input type="text" id="url" class="form-control url-area" name="url">
+            {#            <input type="submit" value="提交">#}
+        </div>
+        <input type="submit" class="btn btn-info btn-left" value="添加">
+        {{ sub_error }}
+    </form>
+
+    <form class="edit-area  add-area" method="post" action="{% url 'dashboard:video_star' video.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" class="form-control url-area" name="name">
+            {#            <input type="submit" value="提交">#}
+        </div>
+
+        <div class="form-group">
+            <label>身份</label>
+            <select class="form-control video-select" name="identity">
+                {% for item in IdentityType %}
+                    <option value="{{ item.value }}">{{ item.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" class="btn btn-info btn-left" value="添加">
+        {{ star_error }}
+    </form>
+
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>集数</th>
+            <th>链接</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sub in subs %}
+            <tr>
+                <td>第{{ sub.number }}集</td>
+                <td><a href="{{ sub.url }} " target="_blank">{{ sub.url }}</a></td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+    <table class="table star-area">
+        <thead>
+        <tr>
+            <th>演员</th>
+            <th>职位</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for star in stars %}
+            <tr>
+                <td>{{ star.name }}</td>
+                <td>{{ star.identity|get_star_label }}</td>
+                <td><a href="{% url 'dashboard:video_star_delete' star.id video.id %}">删除</a></td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+
+{% endblock content %}

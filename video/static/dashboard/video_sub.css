@@ -1,0 +1,29 @@
+.url-area {
+    width: 70%;
+    display: inline-block;
+    margin-left: 25px;
+}
+
+.add-area {
+    width: 50%;
+    padding: 10px;
+    border: 1px solid #CCCCCC;
+    border-radius: 15px;
+    margin-top: 10px;
+    margin-left: 25px;
+}
+
+.btn-left {
+    width: 60px;
+    margin-left: 60px;
+}
+
+.video-select {
+    width: 20%;
+    margin-left: 25px;
+    display: inline-block;
+}
+
+.star-area {
+
+}
