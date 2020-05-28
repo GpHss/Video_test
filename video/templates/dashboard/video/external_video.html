@@ -1,0 +1,101 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load extras %}
+{% block file %}
+    <link rel="stylesheet" href="{% static 'dashboard/external_video.css' %}">
+    <script src="{% static 'dashboard/external_video.js' %}"></script>
+{% endblock file %}
+
+{% block title %}
+    外链视频
+{% endblock title %}
+
+{% block style %}
+    <style>
+        h1 {
+            margin: 5%;
+        }
+    </style>
+{% endblock style %}
+
+
+{% block content %}
+    <h1>外链视频</h1>
+
+    <button class="btn btn-default open-btn" id="open-add-video-btn">创建</button>
+    {{ error }}
+    <br>
+
+    <form class="edit-area add-video-area" method="post" id="video-edit-area">
+        {% csrf_token %}
+        <div class="form-group">
+            {#            <label for="name">视频名称</label>#}
+            <br>
+            <input type="text" class="form-control" name="name" id="name" placeholder="视频名称">
+        </div>
+        <div class="form-group">
+            {#            <label for="image">海报</label>#}
+            <input type="text" class="form-control" name="image" id="image" placeholder="海报">
+        </div>
+        <div class="form-group">
+            <label>视频类型</label>
+            <select class="form-control video-select" name="video_type">
+                {% for item in VideoType %}
+                    <option value="{{ item.value }}">{{ item.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>视频来源</label>
+            <select class="form-control video-select" name="video_from">
+                {% for item in FromType %}
+                    {% if item.value != 'custom' %}
+                        <option value="{{ item.value }}">{{ item.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>简介</label>
+            <textarea name="info" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-info btn-mid">添加</button>
+        </div>
+        {{ error }}
+    </form>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>海报</th>
+            <th>类型</th>
+            <th>来源</th>
+            <th>简介</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>修改时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for video in videos %}
+            <tr>
+                <td>{{ video.name }}</td>
+                <td><img src="{{ video.image }}" alt="" class="video-image"></td>
+                <td>{{ video.video_type|get_video_type_label }}</td>
+                {#        <td>{{ VideoType.video_type.label }}</td>#}
+                <td>{{ video.from_to|get_from_label }}</td>
+                <td><p class="info">{{ video.info }}</p></td>
+                <td>{{ video.status }}</td>
+                <td>{{ video.create_time }}</td>
+                <td>{{ video.update_time }}</td>
+                <td><a href="#">编辑</a>|<a href="{% url 'dashboard:video_sub' video.id %}">附加信息</a></td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+{% endblock content %}
