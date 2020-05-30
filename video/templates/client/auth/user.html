@@ -1,0 +1,31 @@
+{% extends 'client/base.html' %}
+{% load static %}
+{% block title %}用户中心{% endblock title %}
+
+{% block file %}
+    <link rel="stylesheet" href="{% static 'client/user.css' %}">
+    <script src="{% static 'client/user.js' %}"></script>
+{% endblock file %}
+
+{% block content %}
+    {% if auth %}
+        <p>你好，{{ auth.username }}</p>
+        <a href="{% url 'client:logout' %}">注销</a>
+    {% else %}
+        <div class="edit-area">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" class="form-control" name="username" id="username" placeholder="username">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" class="form-control" name="password" id="password" placeholder="password">
+            </div>
+            <button class="btn btn-default" id="login-submit" data-url="{% url 'client:auth' %}">登录</button>
+            <button class="btn btn-default" id="register-submit" data-url="{% url 'client:register' %}">注册</button>
+            {{ error }}
+        </div>
+    {% endif %}
+
+{% endblock content %}

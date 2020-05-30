@@ -14,9 +14,9 @@ def hash_password(password):
 class ClientUser(models.Model):
     username = models.CharField(max_length=30, null=False, unique=True)
     password = models.CharField(max_length=255, null=False)
-    avatar = models.CharField(max_length=500, default=None)
-    gender = models.CharField(max_length=10, default='')
-    birthday = models.DateTimeField(null=True, blank=True, default=None)
+    # avatar = models.CharField(max_length=500, default=None, blank=True)
+    # gender = models.CharField(max_length=10, default='')
+    # birthday = models.DateTimeField(null=True, blank=True, default=None)
     """
     Field.db_index¶
     If True, a database index will be created for this field.
@@ -36,13 +36,10 @@ class ClientUser(models.Model):
         return "username: {}".format(self.username)
 
     @classmethod
-    def add(cls, username, password, avatar=None, gender='', birthday=''):
+    def add(cls, username, password):
         return cls.objects.create(
             username=username,
             password=hash_password(password),
-            avatar=avatar,
-            gender=gender,
-            birthday=birthday,
             status=True,
         )
 

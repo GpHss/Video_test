@@ -1,5 +1,15 @@
+h1 {
+    margin: 3%;
+}
+
+
 .url-area {
     width: 70%;
+    display: inline-block;
+    margin-left: 25px;
+}
+.number-area {
+    width: 15%;
     display: inline-block;
     margin-left: 25px;
 }
@@ -11,10 +21,11 @@
     border-radius: 15px;
     margin-top: 10px;
     margin-left: 25px;
+    margin-bottom: 15px;
 }
 
 .btn-left {
-    width: 60px;
+    width: 150px;
     margin-left: 60px;
 }
 
@@ -24,6 +35,6 @@
     display: inline-block;
 }
 
-.star-area {
-
+.btn-delete-left {
+    margin-left: 10px;
 }

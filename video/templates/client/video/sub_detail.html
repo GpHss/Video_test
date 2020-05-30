@@ -1,0 +1,10 @@
+{% extends 'client/base.html' %}
+{% load static %}
+{% block title %}视频{% endblock title %}
+
+{% block content %}
+    <p>{{ video.name }}</p>
+    <p>第{{ sub.number }}集</p>
+    <video controls src="{{ sub.url }}"></video>
+
+{% endblock content %}

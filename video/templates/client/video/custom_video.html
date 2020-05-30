@@ -1,0 +1,21 @@
+{% extends 'client/base.html' %}
+{% load static %}
+{% block title %}内链视频{% endblock title %}
+
+{% block file %}
+    <link rel="stylesheet" href="{% static 'client/public_video.css' %}">
+{% endblock file %}
+
+{% block content %}
+
+    {% for video in videos %}
+        <div class="video-show">
+            <a href="{% url 'client:video_sub' video.id %}">
+                <div class="video-image"
+                     style="background-image: url('{{ video.image }}');background-size: cover;background-position: center"></div>
+                <p class="video-name">{{ video.name }}</p>
+            </a>
+        </div>
+    {% endfor %}
+
+{% endblock content %}

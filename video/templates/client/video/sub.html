@@ -1,0 +1,47 @@
+{% extends 'client/base.html' %}
+{% load static %}
+{% load extras %}
+{% block title %}视频{% endblock title %}
+
+{% block file %}
+    <link rel="stylesheet" href="{% static 'client/sub.css' %}">
+{% endblock file %}
+
+{% block content %}
+    <img src="{{ video.image }}" alt="" class="video-image">
+    <p><span>名称：</span>{{ video.name }}</p>
+    <p>
+        <span>演员：</span><br>
+    <ul>
+        {% for star in video.video_star.all %}
+            <li>
+                {{ star.name }} : {{ star.identity|get_star_label }}
+            </li>
+        {% endfor %}
+    </ul>
+    </p>
+    <p>
+        <span>简介：</span>
+    <p>{{ video.info }}</p>
+    </p>
+    {% if video.from_to == 'custom' and not is_login %}
+        <p>请 <a href="{% url 'client:auth' %}">登录</a></p>
+    {% else %}
+        <p>
+            <span>选集：</span><br>
+        <ul>
+            {% if video.from_to != 'custom' %}
+                {% for sub in subs %}
+                    <li><a href="{{ sub.url }}">第{{ sub.number }}集</a></li>
+                {% endfor %}
+            {% else %}
+                {% for sub in subs %}
+                    <li><a href="{% url 'client:custom_video_detail' video.id sub.id %}">第{{ sub.number }}集</a></li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+        </p>
+    {% endif %}
+
+
+{% endblock content %}
