@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+import djcelery
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -35,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'djcelery',
 
     'client',
     'dashboard',
@@ -120,3 +124,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
+# 七牛云
+QINIU_AK = 'SNrxi7J_Lc5XLvEQkQay6_0MHfxAadCy6B-nYulH'
+QINIU_SK = 'N45tQBJyTnYgMzZXCRMlmMEtx__zYzTXQqNAk5wM'
+QINIU_BUCKET = 'video-temp-gphss'
+QINIU_VIDEO_URL = 'http://qb374g0iz.bkt.clouddn.com'
+
+# celery & redis
+djcelery.setup_loader()
+BROKER_URL = 'redis://39.96.86.60:6379/2'
+CELERY_RESULT_BACKEND = 'redis://39.96.86.60:6379/3'
+CELERY_IMPORTS = ('utils.task')

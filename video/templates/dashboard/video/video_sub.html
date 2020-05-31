@@ -3,6 +3,7 @@
 {% load extras %}
 {% block file %}
     <link rel="stylesheet" href="{% static 'dashboard/video_sub.css' %}">
+    <script src="{% static 'dashboard/video_sub.js' %}"></script>
 {% endblock file %}
 
 {% block title %}
@@ -10,27 +11,66 @@
 {% endblock title %}
 
 {% block style %}
-    <style>
-        h1 {
-            margin: 5%;
-        }
-    </style>
 {% endblock style %}
 
 
 {% block content %}
     <h1>{{ video.name }}</h1>
 
-    <form class="edit-area add-area" method="post">
+    <form
+            {% if video.from_to == 'custom' %}enctype="multipart/form-data"{% endif %}
+            class="edit-area add-area" method="post"
+    >
         {% csrf_token %}
+
+        {% if video.from_to != 'custom' %}
+            <div class="form-group">
+                <label for="url">地址: </label>
+                <input type="text" id="url" class="form-control url-area" name="url">
+            </div>
+        {% else %}
+            <div class="form-group">
+                <input type="file" name="url">
+                <p class="help-block">请上传您的视频, 但是不要太大哦</p>
+            </div>
+        {% endif %}
         <div class="form-group">
-            <label for="url">地址: </label>
-            <input type="text" id="url" class="form-control url-area" name="url">
-            {#            <input type="submit" value="提交">#}
+            <label for="number">集数: </label>
+            <input type="number" id="number" class="form-control number-area" name="number">
+
         </div>
-        <input type="submit" class="btn btn-info btn-left" value="添加">
+        <input type="hidden" name="sub_id" id="sub_id" value="">
+        <input type="submit" class="btn btn-info btn-left" value="添加剧集">
         {{ sub_error }}
     </form>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>集数</th>
+            <th>链接</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sub in subs %}
+            <tr>
+                <td>第{{ sub.number }}集</td>
+                <td><a href="{{ sub.url }} " target="_blank">{{ sub.url }}</a></td>
+                <td>
+                    {% if video.from_to != 'custom' %}
+                        <button class="update-btn btn btn-info" data-id="{{ sub.id }}" data-url="{{ sub.url }}"
+                                data-number="{{ sub.number }}">编辑
+                        </button>
+                    {% endif %}
+                    <a class="btn btn-danger btn-delete-left"
+                       href="{% url 'dashboard:video_sub_delete' sub.id video.id %}">删除</a>
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
 
     <form class="edit-area  add-area" method="post" action="{% url 'dashboard:video_star' video.id %}">
         {% csrf_token %}
@@ -48,28 +88,10 @@
                 {% endfor %}
             </select>
         </div>
-        <input type="submit" class="btn btn-info btn-left" value="添加">
+        <input type="submit" class="btn btn-info btn-left" value="添加演员">
         {{ star_error }}
     </form>
 
-
-    <table class="table">
-        <thead>
-        <tr>
-            <th>集数</th>
-            <th>链接</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for sub in subs %}
-            <tr>
-                <td>第{{ sub.number }}集</td>
-                <td><a href="{{ sub.url }} " target="_blank">{{ sub.url }}</a></td>
-            </tr>
-        {% endfor %}
-
-        </tbody>
-    </table>
 
     <table class="table star-area">
         <thead>
@@ -82,9 +104,10 @@
         <tbody>
         {% for star in stars %}
             <tr>
-                <td>{{ star.name }}</td>
+                <td><a target="_blank" href="https://baike.baidu.com/item/{{ star.name }}">{{ star.name }}</a></td>
                 <td>{{ star.identity|get_star_label }}</td>
-                <td><a href="{% url 'dashboard:video_star_delete' star.id video.id %}">删除</a></td>
+                <td><a class="btn btn-danger" href="{% url 'dashboard:video_star_delete' star.id video.id %}">删除</a>
+                </td>
             </tr>
         {% endfor %}
 

@@ -4,7 +4,7 @@ from django.core.paginator import Paginator  # , Page
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
-from utils.common import check_video_type
+from utils.common import check_video_type, handel_video
 from utils.permission import dashboard_auth
 
 from .models import VideoType, FromType, Video, VideoSub, VideoStar, IdentityType
@@ -40,7 +40,7 @@ class LoginView(View):
         django.contrib.auth.authenticate 的基础用法
         authenticate(request, username=None, password=None)¶
         Tries to authenticate username with password by calling User.check_password. 
-        Returns an authenticated user or None.
+        Returns an authenticated auth or None.
         返回一个已经被验证的用户 或者 None
         """
         user = authenticate(username=username, password=password)
@@ -48,7 +48,7 @@ class LoginView(View):
             context['error'] = '密码错误'
             return render(request, 'dashboard/auth/login.html', context)
 
-        # if not user.is_superuser:
+        # if not auth.is_superuser:
         #     context['error'] = '您无权访问'
         #     return render(request, 'dashboard/auth/login.html', context)
 
@@ -85,8 +85,8 @@ class AdminManagerView(View):
         current_page = p.get_page(page)
         # Paginator.get_page() 返回一个Page对象, 其中包含当前页的user
         # Page类 重写了 __iter__() 方法
-        # for user in current_page.__iter__():
-        #     print(user)
+        # for auth in current_page.__iter__():
+        #     print(auth)
         context = {
             'page': current_page,
             'users': current_page.__iter__(),
@@ -117,19 +117,20 @@ class IndexView(View):
         return render(request, 'dashboard/index.html')
 
 
-class ExternalVideoView(View):
+class VideoView(View):
     @dashboard_auth
     def get(self, request):
         # for item in VideoType:
         #     print(item.value, item.label)
-        videos = Video.objects.exclude(from_to=FromType.custom.value)
-        print(VideoType(videos[0].video_type).label)
+        ex_videos = Video.objects.exclude(from_to=FromType.custom.value)
+        cus_videos = Video.objects.filter(from_to=FromType.custom.value)
         context = {
             'VideoType': VideoType.__iter__,
             'FromType': FromType.__iter__,
-            'videos': videos,
+            'ex_videos': ex_videos,
+            'cus_videos': cus_videos,
         }
-        return render(request, 'dashboard/video/external_video.html', context=context)
+        return render(request, 'dashboard/video/videos.html', context=context)
 
     def post(self, request):
         name = request.POST.get('name')
@@ -142,17 +143,17 @@ class ExternalVideoView(View):
         context = {}
         if not all([name, image, video_type, video_from, info]):
             context['error'] = '缺少必要字段'
-            return render(request, 'dashboard/video/external_video.html', context=context)
+            return render(request, 'dashboard/video/videos.html', context=context)
 
         result = check_video_type(VideoType, video_type, '非法的视频类型')
         if result.get('code') == -1:
             context['error'] = result.get('msg')
-            return render(request, 'dashboard/video/external_video.html', context=context)
+            return render(request, 'dashboard/video/videos.html', context=context)
 
         result = check_video_type(FromType, video_from, '非法的视频来源')
         if result.get('code') == -1:
             context['error'] = result.get('msg')
-            return render(request, 'dashboard/video/external_video.html', context=context)
+            return render(request, 'dashboard/video/videos.html', context=context)
 
         Video.objects.create(
             name=name,
@@ -165,15 +166,27 @@ class ExternalVideoView(View):
         return redirect(reverse('dashboard:external_video'))
 
 
+class VideoUpdateStatus(View):
+    @dashboard_auth
+    def get(self, request, video_id):
+        video = Video.objects.get(pk=video_id)
+        video.status = not video.status
+        video.save()
+
+        return redirect(reverse('dashboard:video'))
+
+
 class VideoSubView(View):
     @dashboard_auth
     def get(self, request, video_id):
         video = Video.objects.get(id=video_id)
-        video_sub = VideoSub.objects.filter(video=video)
+
+        video_sub = VideoSub.objects.filter(video=video).order_by('number')
+
         sub_error = request.GET.get('sub_error', '')
         star_error = request.GET.get('star_error', '')
 
-        stars = VideoStar.objects.filter(video=video)
+        stars = VideoStar.objects.filter(video=video).order_by('id')
 
         context = {
             'video': video,
@@ -186,21 +199,42 @@ class VideoSubView(View):
         return render(request, 'dashboard/video/video_sub.html', context)
 
     def post(self, request, video_id):
-        url = request.POST.get('url')
+        number = request.POST.get('number')
+        sub_id = request.POST.get('sub_id')
         video = Video.objects.get(id=video_id)
-        length = video.video_sub.count() + 1
 
-        if not url:
-            return redirect("{}?sub_error={}".format(reverse('dashboard:video_sub', kwargs={'video_id': video_id}),
-                                                     '数据不完整'))
+        if FromType(video.from_to) == FromType.custom:
+            # 自制视频的上传
+            file = request.FILES.get('url')
+            if not all([file, number]):
+                return redirect("{}?sub_error={}".format(reverse('dashboard:video_sub', kwargs={'video_id': video_id}),
+                                                         '数据不完整'))
+            # 上传到七牛云
+            end_url = handel_video(file)  # 链接
+            try:
+                VideoSub.objects.create(video=video,url=end_url,number=number)
+            except:
+                return redirect("{}?sub_error={}".format(reverse('dashboard:video_sub', kwargs={'video_id': video_id}),
+                                                         '上传失败'))
 
-        VideoSub.objects.create(
-            video=video,
-            url=url,
-            number=length,
-        )
+            return redirect(reverse('dashboard:video_sub', kwargs={'video_id': video_id}))
 
-        return redirect(reverse('dashboard:video_sub', kwargs={'video_id': video_id}))
+        else:
+            # 外链视频
+            url = request.POST.get('url')
+
+            if not all([url, number]):
+                return redirect("{}?sub_error={}".format(reverse('dashboard:video_sub', kwargs={'video_id': video_id}),
+                                                         '数据不完整'))
+            if not sub_id:
+                # sub_id为空
+                VideoSub.objects.create(video=video, url=url, number=number)
+            else:
+                video_sub = VideoSub.objects.get(id=sub_id)
+                video_sub.url = url
+                video_sub.number = number
+                video_sub.save()
+            return redirect(reverse('dashboard:video_sub', kwargs={'video_id': video_id}))
 
 
 class VideoStarView(View):
@@ -222,7 +256,14 @@ class VideoStarView(View):
 
 
 class StarDelete(View):
+    @dashboard_auth
     def get(self, request, star_id, video_id):
         star = VideoStar.objects.filter(id=star_id).delete()
         return redirect(reverse('dashboard:video_sub', kwargs={'video_id': video_id}))
 
+
+class SubDelete(View):
+    @dashboard_auth
+    def get(self, request, sub_id, video_id):
+        VideoSub.objects.filter(id=sub_id).delete()
+        return redirect(reverse('dashboard:video_sub', kwargs={'video_id': video_id}))
